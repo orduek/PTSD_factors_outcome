@@ -1,0 +1,290 @@
+---
+title: "Latent Network"
+author: "Or Duek"
+output: html_notebook
+---
+
+```{r}
+require(psychonetrics)
+require(dplyr)
+require(qgraph)
+```
+```{r}
+# set pruning level
+alpha = 0.01
+```
+
+
+Test Latent network model (lnm) 
+```{r eval=TRUE, message=FALSE}
+# Factor structre
+Latents_8_factor<-c("Re1","Re2", "Av", "Na", "An","Eb","Aa","Da")
+
+# Variables
+vars= c("PCL1", "PCL2", "PCL3","PCL4","PCL5","PCL6","PCL7","PCL8" ,"PCL9",
+        "PCL10","PCL11","PCL12","PCL13","PCL14","PCL15","PCL16","PCL17", "PCL18","PCL19","PCL20")
+
+# Individual factors
+Lambda_8_factor <- matrix(0,20,8)
+Lambda_8_factor[1:3,1] <- 1
+Lambda_8_factor[4:5,2] <- 1
+Lambda_8_factor[6:7,3] <- 1
+Lambda_8_factor[8:11,4] <- 1
+Lambda_8_factor[12:14, 5] <- 1
+Lambda_8_factor[15:16,6] <- 1
+Lambda_8_factor[17:18,7] <- 1
+Lambda_8_factor[19:20,8] <- 1
+# Run model
+lnmMod_8_factor <- lnm(dfAnalysis, vars=vars, lambda = Lambda_8_factor, latents = Latents_8_factor, identification = "variance" )
+# Remove non-sig latent edge:
+lnmMod_8_factor <- lnmMod_8_factor %>% 
+                          runmodel %>% 
+                          psychonetrics::prune(alpha = alpha) 
+```
+Assess the fit indices 
+```{r}
+lnmMod_8_factor
+lnmMod_8_factor %>% fit
+lnmMod_8_factor %>% parameters
+lnmMod_8_factor %>% MIs
+# Plot it
+# Different options for plotting, can be changed
+qgraph(lnmMod_8_factor@modelmatrices[[1]]$omega_zeta, labels = Latents_8_factor,
+       theme = "colorblind", vsize = 10)
+
+# show matrix
+lnmMod_8_factor@modelmatrices[[1]]$omega_zeta[lower.tri(lnmMod_8_factor@modelmatrices[[1]]$omega_zeta)]
+```
+
+
+## 7 factors
+```{r}
+Latents_7_factor<-c("Re", "Av", "Na", "An","Eb","Aa","Da")
+
+# Variables
+vars= c("PCL1", "PCL2", "PCL3","PCL4","PCL5","PCL6","PCL7","PCL8" ,"PCL9",
+        "PCL10","PCL11","PCL12","PCL13","PCL14","PCL15","PCL16","PCL17", "PCL18","PCL19","PCL20")
+
+# Individual factors
+Lambda_7_factor <- matrix(0,20,7)
+Lambda_7_factor[1:5,1] <- 1
+Lambda_7_factor[6:7,2] <- 1
+Lambda_7_factor[8:11,3] <- 1
+Lambda_7_factor[12:14,4] <- 1
+Lambda_7_factor[15:16,5] <- 1
+Lambda_7_factor[17:18,6] <- 1
+Lambda_7_factor[19:20,7] <- 1
+# Run model
+lnmMod_7_factor <- lnm(dfAnalysis, vars=vars, lambda = Lambda_7_factor, latents = Latents_7_factor, identification = "variance" )
+# Remove non-sig latent edge:
+lnmMod_7_factor <- lnmMod_7_factor %>% 
+                          runmodel %>% 
+                          psychonetrics::prune(alpha = alpha)
+
+
+lnmMod_7_factor
+lnmMod_7_factor %>% fit
+lnmMod_7_factor %>% parameters
+lnmMod_7_factor %>% MIs
+# Plot it
+# Different options for plotting, can be changed
+qgraph(lnmMod_7_factor@modelmatrices[[1]]$omega_zeta, labels = Latents_7_factor,
+       theme = "colorblind", vsize = 10)
+```
+## Compare
+
+```{r}
+compare("7 Factor" = lnmMod_7_factor, "8 Factor" = lnmMod_8_factor)
+```
+
+## Adding the dsm-5 model
+
+```{r}
+Latents_5_factor<-c("Re", "Av", "Mood", "Arousal")
+
+# Variables
+vars= c("PCL1", "PCL2", "PCL3","PCL4","PCL5","PCL6","PCL7","PCL8" ,"PCL9",
+        "PCL10","PCL11","PCL12","PCL13","PCL14","PCL15","PCL16","PCL17", "PCL18","PCL19","PCL20")
+
+# Individual factors
+Lambda_5_factor <- matrix(0,20,4)
+Lambda_5_factor[1:5,1] <- 1
+Lambda_5_factor[6:7,2] <- 1
+Lambda_5_factor[8:14,3] <- 1
+Lambda_5_factor[15:20,4] <- 1
+
+
+# Run model
+lnmMod_5_factor <- lnm(dfAnalysis, vars=vars, lambda = Lambda_5_factor, latents = Latents_5_factor, identification = "variance" )
+# Remove non-sig latent edge:
+lnmMod_5_factor <- lnmMod_5_factor %>% 
+                          runmodel %>% 
+                          psychonetrics::prune(alpha = alpha)
+
+
+lnmMod_5_factor
+lnmMod_5_factor %>% fit
+lnmMod_5_factor %>% parameters
+lnmMod_5_factor %>% MIs
+# Plot it
+# Different options for plotting, can be changed
+qgraph(lnmMod_5_factor@modelmatrices[[1]]$omega_zeta, labels = Latents_5_factor,
+       theme = "colorblind", vsize = 10)
+```
+## Compare all three
+```{r}
+compare(lnmMod_5_factor, lnmMod_7_factor, lnmMod_8_factor)
+```
+
+- The 8 factor model fits better.
+
+Now lets test it on the second dataset
+
+```{r}
+## 4 factor
+lnmMod_5_factor_new <- lnm(dfNew, vars=vars, lambda = Lambda_5_factor, latents = Latents_5_factor, identification = "variance" )
+# Remove non-sig latent edge:
+lnmMod_5_factor_new <- lnmMod_5_factor_new %>% 
+                          runmodel %>% 
+                          psychonetrics::prune(alpha = alpha)
+
+
+## 7 factor
+lnmMod_7_factor_new <- lnm(dfNew, vars=vars, lambda = Lambda_7_factor, latents = Latents_7_factor, identification = "variance" )
+# Remove non-sig latent edge:
+lnmMod_7_factor_new <- lnmMod_7_factor_new %>% 
+                          runmodel %>% 
+                          psychonetrics::prune(alpha = alpha)
+
+## 8 factor
+lnmMod_8_factor_new <- lnm(dfNew, vars=vars, lambda = Lambda_8_factor, latents = Latents_8_factor, identification = "variance" )
+# Remove non-sig latent edge:
+lnmMod_8_factor_new <- lnmMod_8_factor_new %>% 
+                          runmodel %>% 
+                          psychonetrics::prune(alpha = alpha)
+
+
+lnmMod_5_factor_new %>% fit
+lnmMod_7_factor_new %>% fit
+lnmMod_8_factor_new %>% fit
+compare(lnmMod_8_factor_new, lnmMod_7_factor_new, lnmMod_5_factor_new)
+```
+
+
+### Add the SF12 factors
+
+```{r eval=TRUE, message=FALSE}
+# Factor structre
+Latents_8_factorSF<-c("Re1","Re2", "Av", "Na", "An","Eb","Aa","Da", "emotional")#,"BP","GH","PF","RP")
+
+# Variables
+vars= c("PCL1", "PCL2", "PCL3","PCL4","PCL5","PCL6","PCL7","PCL8" ,"PCL9",
+        "PCL10","PCL11","PCL12","PCL13","PCL14","PCL15","PCL16","PCL17", "PCL18","PCL19","PCL20",
+        "RE_Z_A")#,"BP_Z_A","GH_Z_A","PF_Z_A","RP_Z_A")
+
+# Individual factors
+Lambda_8_factor <- matrix(0,21,9)
+Lambda_8_factor[1:3,1] <- 1
+Lambda_8_factor[4:5,2] <- 1
+Lambda_8_factor[6:7,3] <- 1
+Lambda_8_factor[8:11,4] <- 1
+Lambda_8_factor[12:14, 5] <- 1
+Lambda_8_factor[15:16,6] <- 1
+Lambda_8_factor[17:18,7] <- 1
+Lambda_8_factor[19:20,8] <- 1
+Lambda_8_factor[21,9] <- 1
+
+# Beta matrix
+beta <- matrix(0,2,1)
+beta[1,1] <- 1
+
+# Run model
+lnmMod_8_factor <- lnm(dfAnalysis, vars=vars, lambda = Lambda_8_factor, latents = Latents_8_factorSF, identification = "variance" )
+# Remove non-sig latent edge:
+lnmMod_8_factor <- lnmMod_8_factor %>% 
+                          runmodel %>% 
+                          psychonetrics::prune(alpha = alpha)
+```
+
+
+```{r}
+lnmMod_8_factor
+lnmMod_8_factor %>% parameters
+lnmMod_8_factor %>% MIs
+# Plot it
+# Different options for plotting, can be changed
+qgraph(lnmMod_8_factor@modelmatrices[[1]]$omega_zeta, labels = Latents_8_factorSF,
+       theme = "colorblind", vsize = 10)
+# Prune
+lnmMod_8_factorPruned<-lnmMod_8_factor %>% prune(alpha = alpha)
+lnmMod_8_factorPruned %>% parameters
+```
+
+## Try SEM with lavaan
+```{r}
+library(lavaan)
+model8_factorSEM <- '# Latent variables
+                  Re1 =~ PCL1 + PCL2 + PCL3
+                  Re2 =~ PCL4 + PCL5
+                  Av =~ PCL6 + PCL7
+                  Na =~ PCL8 + PCL9 + PCL10 + PCL11 
+                  An =~ PCL12 + PCL13 + PCL14
+                  Eb =~ PCL15 + PCL16
+                  Aa =~PCL17 + PCL18
+                  Da=~ PCL19 +PCL20 
+                  SF=~ RE_Z_A
+                  # regressions
+                  SF ~ Re2 + Re1
+                 
+                  '
+
+
+
+fit <- sem(model = model8_factorSEM,
+           data  = dfAnalysis[,1:21])
+
+summary(fit, fit.measures=T)
+plot(fit)
+# plot
+semPlot::semPaths(fit, what = "est", layout = "tree2", theme = "colorblind")
+```
+
+## Network analysis
+```{r}
+library(bootnet)
+network <- estimateNetwork(dfAnalysis[,1:20], default = "EBICglasso")
+plot(network)
+net1 <- bootnet(network, nBoots=1000, nCores = 8)
+pdf("netSig.pdf", height=10, width=10)
+plot(net1, "edge", plot = "difference", onlyNonZero = TRUE, order = "sample")
+dev.off()
+print(summary(net1), digits=3)
+network$graph
+```
+
+## Generate nice Semplot
+
+```{r}
+lambdaEst <- getmatrix(lnmMod_8_factor, "lambda")
+psiEst <- getmatrix(lnmMod_8_factor, "sigma_zeta")
+thetaEst <- getmatrix(lnmMod_8_factor, "sigma_epsilon")
+
+
+# Make semPlot model:
+plotmod <- lisrelModel(
+  LY = lambdaEst, PS = psiEst, TE = thetaEst)
+
+semPaths(plotmod, "std", "est", as.expression = "nodes")
+
+semPaths(plotmod,"col","est", layout = "tree2", 
+         style = "lisrel", residScale = 8,
+         groups = "latents", 
+         pastel = TRUE, 
+         borders = FALSE
+        )
+#  manNamesEndo = names(PoliticalDemocracy),
+#  latNamesEndo = c("dem60","dem65","ind60") 
+#)
+
+```
+
